@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Binaural Beats Focus App</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 { color: #4a90e2; }
+    .controls, .presets, .timer { margin: 1rem 0; }
+    button, input[type="range"] {
+      margin: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background: #4a90e2;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #357ABD; }
+    input[type="range"] { width: 300px; }
+    .countdown { font-size: 1.5rem; margin-top: 1rem; }
+    .info { font-size: 0.9rem; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Binaural Beats for Focus</h1>
+
+  <div class="presets">
+    <button onclick="setPreset(10)">Alpha (10Hz)</button>
+    <button onclick="setPreset(20)">Beta (20Hz)</button>
+    <button onclick="setPreset(40)">Gamma (40Hz)</button>
+    <button onclick="setPreset(6)">Theta (6Hz)</button>
+  </div>
+
+  <div class="controls">
+    <label>Frequency (1-50Hz): <span id="freqVal">10</span>Hz</label><br>
+    <input type="range" min="1" max="50" value="10" id="frequencySlider">
+    <br>
+    <label>Volume: <span id="volVal">0.5</span></label><br>
+    <input type="range" min="0" max="1" step="0.01" value="0.5" id="volumeSlider">
+  </div>
+
+  <div class="timer">
+    <label>Timer:</label>
+    <button onclick="startTimer(15)">15 min</button>
+    <button onclick="startTimer(25)">25 min</button>
+    <button onclick="startTimer(45)">45 min</button>
+    <button onclick="startTimer(60)">60 min</button>
+  </div>
+
+  <button onclick="togglePlay()" id="playBtn">▶️ Play</button>
+  <div class="countdown" id="countdown">00:00</div>
+
+  <div class="info">
+    <p>🎧 Use headphones for effective binaural effect.</p>
+    <p>Each frequency affects the brain differently:<br>
+      Alpha = Relaxed Focus | Beta = Active Concentration<br>
+      Gamma = Peak Performance | Theta = Deep Meditation
+    </p>
+  </div>
+
+  <script>
+    let audioCtx, leftOsc, rightOsc, leftGain, rightGain;
+    let baseFreq = 200;
+    let beatFreq = 10;
+    let isPlaying = false;
+    let volume = 0.5;
+    let timerInterval;
+    let remainingTime = 0;
+
+    const playBtn = document.getElementById('playBtn');
+    const freqSlider = document.getElementById('frequencySlider');
+    const volSlider = document.getElementById('volumeSlider');
+    const freqVal = document.getElementById('freqVal');
+    const volVal = document.getElementById('volVal');
+    const countdown = document.getElementById('countdown');
+
+    freqSlider.oninput = () => {
+      beatFreq = parseFloat(freqSlider.value);
+      freqVal.textContent = beatFreq;
+      if (isPlaying) updateFreqs();
+    };
+
+    volSlider.oninput = () => {
+      volume = parseFloat(volSlider.value);
+      volVal.textContent = volume.toFixed(2);
+      if (isPlaying) updateVolume();
+    };
+
+    function createAudio() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      leftOsc = audioCtx.createOscillator();
+      rightOsc = audioCtx.createOscillator();
+      leftGain = audioCtx.createGain();
+      rightGain = audioCtx.createGain();
+
+      leftOsc.frequency.value = baseFreq;
+      rightOsc.frequency.value = baseFreq + beatFreq;
+
+      leftGain.gain.value = volume;
+      rightGain.gain.value = volume;
+
+      leftOsc.connect(leftGain).connect(audioCtx.destination);
+      rightOsc.connect(rightGain).connect(audioCtx.destination);
+
+      // Stereo panning
+      if (audioCtx.createStereoPanner) {
+        let panL = audioCtx.createStereoPanner();
+        let panR = audioCtx.createStereoPanner();
+        panL.pan.value = -1;
+        panR.pan.value = 1;
+        leftGain.disconnect();
+        rightGain.disconnect();
+        leftGain.connect(panL).connect(audioCtx.destination);
+        rightGain.connect(panR).connect(audioCtx.destination);
+      }
+
+      leftOsc.start();
+      rightOsc.start();
+    }
+
+    function updateFreqs() {
+      rightOsc.frequency.setValueAtTime(baseFreq + beatFreq, audioCtx.currentTime);
+    }
+
+    function updateVolume() {
+      leftGain.gain.setValueAtTime(volume, audioCtx.currentTime);
+      rightGain.gain.setValueAtTime(volume, audioCtx.currentTime);
+    }
+
+    function stopAudio() {
+      leftOsc?.stop();
+      rightOsc?.stop();
+      audioCtx?.close();
+      clearInterval(timerInterval);
+      countdown.textContent = '00:00';
+    }
+
+    function togglePlay() {
+      if (!isPlaying) {
+        createAudio();
+        playBtn.textContent = '⏹️ Stop';
+        isPlaying = true;
+      } else {
+        stopAudio();
+        playBtn.textContent = '▶️ Play';
+        isPlaying = false;
+      }
+    }
+
+    function setPreset(freq) {
+      beatFreq = freq;
+      freqSlider.value = freq;
+      freqVal.textContent = freq;
+      if (isPlaying) updateFreqs();
+    }
+
+    function startTimer(minutes) {
+      remainingTime = minutes * 60;
+      updateCountdown();
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        remainingTime--;
+        updateCountdown();
+        if (remainingTime <= 0) {
+          togglePlay();
+        }
+      }, 1000);
+      if (!isPlaying) togglePlay();
+    }
+
+    function updateCountdown() {
+      const mins = Math.floor(remainingTime / 60).toString().padStart(2, '0');
+      const secs = (remainingTime % 60).toString().padStart(2, '0');
+      countdown.textContent = `${mins}:${secs}`;
+    }
+  </script>
+</body>
+</html>
