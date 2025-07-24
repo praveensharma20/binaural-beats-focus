@@ -1,6 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <style>
+        body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #3a6073, #16222a);
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  justify-content: center;
+}
+
+h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+button {
+  background: #00c9ff;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #92fe9d;
+}
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to right, #141e30, #243b55);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+  }
+
+  button {
+    background-color: #00c6ff;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3);
+    transition: all 0.3s ease-in-out;
+  }
+
+  button:hover {
+    background-color: #0072ff;
+    transform: scale(1.05);
+  }
+
+  .info {
+    margin-top: 20px;
+    font-size: 1rem;
+    max-width: 600px;
+    line-height: 1.6;
+  }
+</style>
+
   <meta charset="UTF-8">
   <title>Binaural Beats Focus App</title>
   <style>
@@ -33,7 +110,10 @@
 </head>
 <body>
   <h1>Binaural Beats for Focus</h1>
-
+  <audio id="binauralSound" controls autoplay loop>
+  <source src="binaural-beat.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
   <div class="presets">
     <button onclick="setPreset(10)">Alpha (10Hz)</button>
     <button onclick="setPreset(20)">Beta (20Hz)</button>
